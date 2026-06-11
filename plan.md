@@ -95,3 +95,6 @@ python -m src.cli https://docs.cline.bot/cline-overview --output my-docs --max-p
 - [x] Create `.dockerignore` (exclude cache, output, .git)
 - [x] Update `plan.md` with Docker architecture & checklist
 - [x] Update `README.md` with Docker installation & usage section
+- [x] Build Docker image & test end-to-end (requires Docker Desktop to be running)
+- [x] Update `.gitignore` to keep `cline-documentation.md` tracked
+- [x] Update README example to use `https://docs.cline.bot -o cline-documentation`

@@ -11,8 +11,10 @@ venv/
 # Environment
 .env
 
-# Output
+# Output (generated markdown files)
 output/*.md
+# Keep the example output file tracked
+!output/cline-documentation.md
 
 # Virtual environments
 env/

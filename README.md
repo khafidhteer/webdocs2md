@@ -3,7 +3,7 @@
 **Crawl documentation websites and compile them into a single structured Markdown document.**
 
 ```
-webdocs2md https://docs.cline.bot/cline-overview
+webdocs2md https://docs.cline.bot -o cline-documentation
 ```
 
 ## Features
@@ -62,20 +62,21 @@ No Python or Playwright installation needed — everything is bundled inside the
 ### Option A — Python (native)
 
 ```bash
-python -m src.cli https://docs.cline.bot/cline-overview
+# Generate documentation from a URL
+python -m src.cli https://docs.cline.bot -o cline-documentation
 ```
 
 ### Option B — Docker
 
 ```bash
-docker compose run --rm webdocs2md https://docs.cline.bot/cline-overview
+docker compose run --rm webdocs2md https://docs.cline.bot -o cline-documentation
 ```
 
 Both will:
 1. Start from the given URL
 2. Crawl all linked pages under `docs.cline.bot`
 3. Convert each page to Markdown
-4. Compile everything into `output/docs.cline.bot-docs.md`
+4. Compile everything into `output/cline-documentation.md`
 
 ### Options
 
