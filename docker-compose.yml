@@ -1,0 +1,19 @@
+services:
+  webdocs2md:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: webdocs2md:latest
+    container_name: webdocs2md
+    volumes:
+      # Mount output directory so generated Markdown files land on the host
+      - ./output:/app/output
+    # The URL argument is passed via `docker compose run`
+    # Usage: docker compose run --rm webdocs2md <URL> [options]
+    entrypoint: ["python", "-m", "src.cli"]
+    # Default is to show help if no URL is given
+    command: ["--help"]
+    # Environment variables can be overridden via .env file or docker-compose env
+    environment:
+      - OUTPUT_DIR=/app/output
+      - PLAYWRIGHT_HEADLESS=true

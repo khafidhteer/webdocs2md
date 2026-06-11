@@ -15,17 +15,20 @@ webdocs2md https://docs.cline.bot/cline-overview
 - 📑 **Single-file output** — All pages compiled into one well-structured document with Table of Contents
 - ⚙️ **Configurable** — Max pages, delay, concurrency, and more via CLI flags or `.env`
 - 🦦 **Progress bars** — Real-time feedback during crawling and conversion
+- 🐳 **Docker-ready** — Pre-configured multi-stage Dockerfile with Playwright pre-installed
 
 ## Installation
 
-### Prerequisites
+### Option A — Python (native)
+
+#### Prerequisites
 - **Python 3.10 or higher**
 - **Playwright** (optional, for JS-rendered sites): `playwright install chromium`
 
-### Setup
+#### Setup
 
 ```bash
-# Clone the repository (or download the files)
+# Clone the repository
 git clone https://github.com/yourusername/webdocs2md.git
 cd webdocs2md
 
@@ -36,15 +39,39 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
+### Option B — Docker (recommended for zero-config)
+
+#### Prerequisites
+- **Docker** and **Docker Compose** installed
+
+#### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/webdocs2md.git
+cd webdocs2md
+
+# Build the Docker image (Playwright + Chromium included)
+docker compose build
+```
+
+No Python or Playwright installation needed — everything is bundled inside the container.
+
 ## Usage
 
-### Basic usage
+### Option A — Python (native)
 
 ```bash
 python -m src.cli https://docs.cline.bot/cline-overview
 ```
 
-This will:
+### Option B — Docker
+
+```bash
+docker compose run --rm webdocs2md https://docs.cline.bot/cline-overview
+```
+
+Both will:
 1. Start from the given URL
 2. Crawl all linked pages under `docs.cline.bot`
 3. Convert each page to Markdown
@@ -66,6 +93,7 @@ This will:
 ### Examples
 
 ```bash
+# === Python (native) ===
 # Crawl with custom output filename
 python -m src.cli https://docs.cline.bot/cline-overview -o cline-documentation
 
@@ -80,6 +108,16 @@ python -m src.cli https://docs.cline.bot/cline-overview -v
 
 # Custom document title
 python -m src.cli https://docs.cline.bot/cline-overview --title "Cline Bot Docs"
+
+# === Docker ===
+# All the same flags work via Docker
+docker compose run --rm webdocs2md https://docs.cline.bot/cline-overview -o cline-documentation -m 50 -d 1.0
+
+# Show help
+docker compose run --rm webdocs2md --help
+
+# Disable Playwright in Docker
+docker compose run --rm webdocs2md https://docs.cline.bot/cline-overview --no-playwright
 ```
 
 ## Output Format
@@ -145,6 +183,9 @@ webdocs2md/
 ├── output/              # Generated documents
 ├── .env                 # Local configuration
 ├── .env.example         # Config template
+├── .dockerignore        # Files excluded from Docker build context
+├── Dockerfile           # Multi-stage Docker build (Playwright included)
+├── docker-compose.yml   # One-command container orchestration
 ├── plan.md              # Project plan & checklist
 ├── LICENSE              # MIT License
 ├── README.md            # This file

@@ -4,12 +4,13 @@
 A CLI tool that crawls documentation websites (e.g., `docs.cline.bot`), discovers all linked pages under the same domain, extracts their content, and compiles everything into a single structured Markdown document.
 
 ## Technology Stack
-- **Python 3.10+**
+- **Python 3.12** (via official slim Docker image)
 - `requests` + `beautifulsoup4` — primary HTTP fetching & HTML parsing
 - `playwright` — fallback headless browser for JavaScript-rendered content
 - `markdownify` — HTML-to-Markdown conversion
 - `click` — CLI argument parsing
 - `tqdm` — progress bar for crawl & fetch phases
+- **Docker** — containerized execution for zero-config portability
 
 ## Architecture
 
@@ -26,6 +27,9 @@ webdocs2md/
 ├── output/               # Generated documents
 ├── .env                  # Local config (gitignored)
 ├── .env.example          # Config template
+├── .dockerignore         # Files excluded from Docker build context
+├── Dockerfile            # Multi-stage Docker build (Playwright included)
+├── docker-compose.yml    # One-command container orchestration
 ├── plan.md               # This file
 ├── LICENSE               # MIT License
 ├── README.md             # Usage documentation
@@ -72,17 +76,22 @@ python -m src.cli https://docs.cline.bot/cline-overview --output my-docs --max-p
 - [x] Define project scope & architecture
 - [x] Create project directory structure
 - [x] Create `plan.md` with checklist
-- [ ] Create `LICENSE` (MIT)
-- [ ] Create `.env` and `.env.example`
-- [ ] Create `.gitignore`
-- [ ] Create `requirements.txt`
-- [ ] Create `src/__init__.py`
-- [ ] Create `src/utils.py` (URL normalization, domain helpers)
-- [ ] Create `src/crawler.py` (BFS crawl, same-domain filter, dedup)
-- [ ] Create `src/fetcher.py` (requests + playwright fallback)
-- [ ] Create `src/converter.py` (HTML → clean Markdown)
-- [ ] Create `src/compiler.py` (TOC generation, page assembly)
-- [ ] Create `src/cli.py` (click CLI, argument parsing)
-- [ ] Create `README.md` with usage examples
-- [ ] Test end-to-end with a small docs site
-- [ ] Verify output matches requirements
+- [x] Create `LICENSE` (MIT)
+- [x] Create `.env` and `.env.example`
+- [x] Create `.gitignore`
+- [x] Create `requirements.txt`
+- [x] Create `src/__init__.py`
+- [x] Create `src/utils.py` (URL normalization, domain helpers)
+- [x] Create `src/crawler.py` (BFS crawl, same-domain filter, dedup)
+- [x] Create `src/fetcher.py` (requests + playwright fallback)
+- [x] Create `src/converter.py` (HTML → clean Markdown)
+- [x] Create `src/compiler.py` (TOC generation, page assembly)
+- [x] Create `src/cli.py` (click CLI, argument parsing)
+- [x] Create `README.md` with usage examples
+- [x] Test end-to-end with a small docs site
+- [x] Verify output matches requirements
+- [x] Create `Dockerfile` (multi-stage with Playwright pre-installed)
+- [x] Create `docker-compose.yml` (volume mounts for output)
+- [x] Create `.dockerignore` (exclude cache, output, .git)
+- [x] Update `plan.md` with Docker architecture & checklist
+- [x] Update `README.md` with Docker installation & usage section
