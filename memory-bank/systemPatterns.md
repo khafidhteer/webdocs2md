@@ -63,6 +63,19 @@ return sorted(discovered)
 - **Anchor generation**: `title-to-anchor` converts title to lowercase, replaces spaces with hyphens, appends `-{index}` for uniqueness
 - **Subpage TOC indentation**: Pages with nested paths get 2-space indent in TOC
 
+### GitHub Profile (`github_scraper.py`)
+**Functions**:
+- `extract_username(url)` → extracts username from GitHub profile URL via regex
+- `get_public_repos(username, max_repos, delay)` → paginated fetch of public repos via `GET /users/{user}/repos`
+- `get_repo_readme(username, repo)` → fetches README via `GET /repos/{user}/{repo}/contents/README.md` (tries multiple filenames + fallback endpoint)
+- `check_rate_limit()` → checks remaining API calls via `GET /rate_limit`
+
+**Compiler integration**: `compile_github_summary(username, repos, repo_readmes)` in compiler.py assembles:
+- Profile header with metadata
+- Table of Contents linking to each repo
+- Repository sections with metadata table + README content
+- Aggregated summary (languages, topics, statistics)
+
 ## Key Design Patterns
 
 ### Pipeline Pattern
@@ -80,9 +93,9 @@ The page count in the header uses `{pages_placeholder}` because the exact count 
 ## Key Relationships
 ```
 cli.py
-  ├── calls crawl_site() from crawler.py (which internally calls fetch_page())
-  ├── calls fetch_page() + extract_content() in a loop for each URL
-  └── calls compile_document() from compiler.py
+  ├── (crawl mode) calls crawl_site() → fetch_page() loop → compile_document()
+  ├── (gh-profile mode) calls extract_username() → get_public_repos() → get_repo_readme() loop → compile_github_summary()
+  └── both modes write .md output files
 
 crawler.py
   └── uses fetch_page() from fetcher.py
@@ -95,7 +108,16 @@ converter.py
   └── uses BeautifulSoup + markdownify
 
 compiler.py
-  └── uses urlparse for URL → title conversion
+  └── (crawl mode) uses urlparse for URL → title conversion
+  └── (gh-profile mode) compile_github_summary() for assembling GitHub profile docs
+  └── uses collections.Counter for topic aggregation
+
+github_scraper.py (new module)
+  └── extract_username(url) — regex from GitHub URL
+  └── get_public_repos(username) — GET /users/{user}/repos (paginated)
+  └── get_repo_readme(username, repo) — GET /repos/{user}/{repo}/contents (base64 decode)
+  └── check_rate_limit() — GET /rate_limit
+  └── uses requests library (shared dependency)
 
 utils.py (independent utility functions)
   └── normalize_url(), is_internal_link(), resolve_url(), extract_domain(), url_to_filename()

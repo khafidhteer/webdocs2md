@@ -6,16 +6,28 @@
 - **Content Extraction**: Multi-strategy heuristic (`article` → `main` → `role="main"` → class names → `body`)
 - **Chrome Removal**: Strips nav, sidebar, footer, header, aside, ads, cookies, search, comments, etc.
 - **Markdown Conversion**: Using `markdownify` with ATX headings, bullet lists, autolinks
-- **Document Compilation**:
+- **Document Compilation** (crawl mode):
   - Header with title, source URL, timestamp, page count
   - Table of Contents with unique indexed anchors
   - Individual page sections with source attribution
   - Subpage indentation in TOC
-- **CLI Interface**: Click-based with all documented flags
+- **CLI Interface**: Click-based with `crawl` + `gh-profile` subcommands
 - **Configuration**: `.env` file support via python-dotenv
 - **Docker**: Multi-stage Dockerfile with Chromium pre-installed, docker-compose orchestration
 - **Progress Feedback**: `tqdm` for crawl progress, per-page status during fetch/convert
 - **Error Handling**: Graceful handling of fetch failures, conversion failures, empty pages
+- **GitHub Profile Summary** (`gh-profile`):
+  - Username extraction from GitHub profile URLs
+  - Public repository listing with metadata (language, topics, stars, forks)
+  - README fetching with multiple filename attempts + fallback endpoint
+  - Base64 decoding of GitHub API README content
+  - Rate limit checking before fetching
+  - Profile summary compilation with:
+    - Profile header with metadata
+    - Table of Contents linking to each repo
+    - Repository sections with metadata table + README content
+    - Aggregated summary (languages grouped, common topics, repo statistics)
+    - LLM-ready output format
 
 ## What's Partially Implemented
 - **`--concurrency` flag**: Defined in CLI and `.env.example` but **not wired to any parallel logic** — pages are fetched sequentially
@@ -28,6 +40,7 @@
 - [ ] No unit tests for individual modules
 - [ ] No integration tests
 - [ ] No fixtures for sample HTML/Markdown
+- [ ] No mocked GitHub API tests
 
 ### CI/CD
 - [ ] No GitHub Actions workflow
@@ -46,6 +59,7 @@
 - [ ] Custom output template support
 - [ ] Multiple output formats (PDF, HTML, JSON)
 - [ ] Verbose output showing which content heuristic matched
+- [ ] AI-powered summary generation using LLM API
 
 ### Quality & Polish
 - [ ] Comprehensive logging throughout pipeline
@@ -70,11 +84,13 @@
 5. **No incremental mode**: Full crawl every time, no caching or resume capability
 6. **Hard-coded timeouts**: 30s timeout in both fetcher paths not configurable via `.env` at runtime
 7. **Error opacity**: All exceptions are caught as `Exception` — no fine-grained error classification
+8. **GitHub API unauthenticated limit**: 60 requests/hour — may be insufficient for profiles with many repos
 
 ## Milestone History
 | Milestone | Status | Description |
 |-----------|--------|-------------|
 | v1.0.0 | ✅ Complete | Core pipeline working, Docker support, basic features |
-| v1.1.0 | ⬜ Planned | Concurrent fetching, test suite, improved error handling |
-| v1.2.0 | ⬜ Planned | Playwright pooling, rate limit handling, CI/CD setup |
+| v1.1.0 | ✅ Complete | GitHub Profile Summary (`gh-profile` subcommand) |
+| v1.2.0 | ⬜ Planned | Concurrent fetching, test suite, improved error handling |
+| v1.3.0 | ⬜ Planned | Playwright pooling, rate limit handling, CI/CD setup |
 | v2.0.0 | ⬜ Future | Authentication support, SPA routing, incremental crawling |

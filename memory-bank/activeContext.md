@@ -9,6 +9,7 @@ webdocs2md is at **version 1.0.0** — a functional, stable release. The core pi
 - `.clinerules` and `memory-bank/` created for AI-assisted development context
 
 ## Active Development Focus
+- **New feature**: `gh-profile` subcommand for GitHub profile summaries (v1.1.0)
 - The `--concurrency` flag is defined in the CLI but **not yet implemented** in the fetcher — pages are fetched sequentially in the current codebase
 - No test suite exists yet (no `tests/` directory)
 - No CI/CD pipeline configured
