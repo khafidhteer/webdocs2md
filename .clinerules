@@ -14,16 +14,19 @@ webdocs2md is a Python CLI tool that crawls documentation websites (via BFS), fe
 ## Project Structure
 ```
 src/
-├── __init__.py         # Package version (__version__)
-├── cli.py              # click CLI entry point
-├── crawler.py          # BFS URL discovery (crawl_site)
-├── fetcher.py          # Page fetching (requests → playwright fallback)
-├── converter.py        # HTML → Markdown (BeautifulSoup + markdownify)
-├── compiler.py         # Document assembly (header + TOC + sections)
-└── utils.py            # URL helpers (normalize, domain, resolve)
+├── __init__.py                # Package version (__version__)
+├── cli.py                     # click CLI entry point (group: crawl + gh-profile)
+├── crawler.py                 # BFS URL discovery (crawl_site)
+├── fetcher.py                 # Page fetching (requests → playwright fallback)
+├── converter.py               # HTML → Markdown (BeautifulSoup + markdownify)
+├── compiler.py                # Document assembly (header + TOC + sections)
+├── github_scraper.py          # GitHub API interaction (repos, READMEs)
+└── utils.py                   # URL helpers (normalize, domain, resolve)
 ```
 
 ## Architecture & Data Flow
+
+### Mode 1: Documentation Crawl (default `crawl` command)
 1. **CLI** (`cli.py`) orchestrates the pipeline: crawl → fetch+convert → compile
 2. **Crawler** (`crawler.py`) does BFS starting from a URL, collecting discovered page URLs
 3. **Fetcher** (`fetcher.py`) downloads HTML — first with `requests`, falling back to Playwright for JS-heavy pages
@@ -33,13 +36,27 @@ src/
    - Table of Contents linking to each section anchor
    - Each page as an `## H2` section with source link + converted content
 
+### Mode 2: GitHub Profile Summary (`gh-profile` command)
+1. **CLI** (`cli.py` → `gh_profile()`) orchestrates the pipeline: extract username → list repos → fetch READMEs → compile
+2. **GitHub Scraper** (`github_scraper.py`) interacts with the GitHub REST API v3:
+   - `extract_username(url)` — parses username from profile URL
+   - `get_public_repos(username)` — lists public repos with metadata (language, topics, stars)
+   - `get_repo_readme(username, repo)` — fetches README content (base64-decoded)
+3. **Compiler** (`compiler.py` → `compile_github_summary()`) assembles the profile document with:
+   - Profile header (username, repo count, timestamp)
+   - Table of Contents linking to each repo
+   - Repository sections (metadata table + README content)
+   - Aggregated summary (languages used, common topics, repo statistics)
+
 ## Key Design Decisions
-- **Single-file output**: All pages compiled into one `.md` document (not one file per page)
+- **Single-file output**: All pages compiled into one `.md` document (not one file per file)
 - **BFS crawling**: Breadth-first to respect hierarchy; sorted output for consistency
 - **Two-tier fetching**: `requests` for speed, Playwright only when pages lack meaningful content
 - **Content heuristics**: `<article>` → `<main>` → `role="main"` → common class names → `<body>`
 - **Anchor uniqueness**: Index suffix on anchors (e.g., `getting-started-1`, `getting-started-2`) to prevent duplicates
 - **Configuration via .env**: Sensible defaults overridden by environment variables
+- **GitHub API**: Uses REST API v3 (unauthenticated) with optional `GITHUB_TOKEN` for higher rate limits
+- **GitHub README fetching**: Tries multiple README filenames (README.md, readme.md, README, Readme.md) + fallback to `/repos/{user}/{repo}/readme` endpoint
 
 ## Critical Behavior Rules
 - Never commit Playwright browser binaries to version control
@@ -49,15 +66,21 @@ src/
 - Non-documentation file types (.pdf, .zip, .png, etc.) must be excluded from crawling
 - Output file encoding must be UTF-8
 - The pages count in the header uses a `{pages_placeholder}` token replaced at the end (because count is unknown until compilation)
+- GitHub API unauthenticated rate limit is 60 requests/hour — respect this for `gh-profile` usage
+- README content from GitHub API is base64-encoded and must be decoded before use
 
 ## CLI Conventions
-- Click library for argument parsing
-- `--output`/`-o`, `--max-pages`/`-m`, `--delay`/`-d`, `--verbose`/`-v`, `--no-playwright`, `--title`
+- Click library for argument parsing (now uses `click.Group` with subcommands)
+- **`crawl` command** (default doc site scraping): `--output`/`-o`, `--max-pages`/`-m`, `--delay`/`-d`, `--verbose`/`-v`, `--no-playwright`, `--title`
+- **`gh-profile` command** (GitHub profile summary): `--output`/`-o`, `--max-repos`/`-m`, `--delay`/`-d`, `--verbose`/`-v`
 - Defaults from `.env` environment variables (loaded via `python-dotenv`)
-- 3-step progress output: [1/3] Crawling → [2/3] Fetching & Converting → [3/3] Compiling
+- `crawl` command uses 3-step progress output: [1/3] Crawling → [2/3] Fetching & Converting → [3/3] Compiling
+- `gh-profile` command uses 4-step progress output: [1/4] Username → [2/4] Rate Limit → [3/4] Repos → [4/4] READMEs & Compile
 
 ## Testing & Quality
-- Run: `python -m src.cli <url> -o test-output -m 5 --no-playwright`
-- Docker: `docker compose run --rm webdocs2md <url> -o test-output -m 5`
+- Run crawl test: `python -m src.cli crawl <url> -o test-output -m 5 --no-playwright`
+- Run gh-profile test: `python -m src.cli gh-profile https://github.com/khafidhteer -o test-profile -m 5`
+- Docker: `docker compose run --rm webdocs2md crawl <url> -o test-output -m 5`
 - Check output in `output/` directory
 - For debugging: `--verbose` flag enables DEBUG-level logging
+- gh-profile can be tested safely without a token (60 req/hour limit) for small profiles
